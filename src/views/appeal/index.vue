@@ -3,21 +3,21 @@
     <div class="filter-container">
       <el-input
         v-model="listQuery.processInstanceId"
-        placeholder="流程实例ID"
+        placeholder="企业名称"
         style="width: 200px"
         class="filter-item"
         @keyup.enter.native="btnQuery"
       />
       <el-input
         v-model="listQuery.taskName"
-        placeholder="任务名称"
+        placeholder="诉求内容"
         style="width: 200px"
         class="filter-item"
         @keyup.enter.native="btnQuery"
       />
       <el-input
         v-model="listQuery.processInstanceBusinessKey"
-        placeholder="业务主键Key"
+        placeholder="受理交办人"
         style="width: 200px"
         class="filter-item"
         @keyup.enter.native="btnQuery"
@@ -25,7 +25,7 @@
       <el-date-picker
         v-model="listQuery.dueDateAfter"
         value-format="yyyy-MM-dd"
-        placeholder="到期日开始"
+        placeholder="受理时间（开始）"
         type="date"
         style="width: 200px"
         class="filter-item"
@@ -33,7 +33,7 @@
       <el-date-picker
         v-model="listQuery.dueDateBefore"
         value-format="yyyy-MM-dd"
-        placeholder="到期日结束"
+        placeholder="受理时间（结束）"
         type="date"
         style="width: 200px"
         class="filter-item"
@@ -51,6 +51,56 @@
           >
         </el-dropdown-menu>
       </el-dropdown>
+      <el-input
+        v-model="listQuery.processInstanceId"
+        placeholder="诉求来源"
+        style="width: 200px"
+        class="filter-item"
+        @keyup.enter.native="btnQuery"
+      />
+      <el-input
+        v-model="listQuery.taskName"
+        placeholder="办理单位"
+        style="width: 200px"
+        class="filter-item"
+        @keyup.enter.native="btnQuery"
+      />
+      <el-input
+        v-model="listQuery.processInstanceBusinessKey"
+        placeholder="办理责任人"
+        style="width: 200px"
+        class="filter-item"
+        @keyup.enter.native="btnQuery"
+      />
+      <el-select
+        v-model="listQuery.sourceStrategy"
+        placeholder="紧急程度"
+        style="width: 200px"
+        class="filter-item"
+      >
+      </el-select>
+      <el-input
+        v-model="listQuery.processInstanceBusinessKey"
+        placeholder="联系方式"
+        style="width: 200px"
+        class="filter-item"
+        @keyup.enter.native="btnQuery"
+      />
+      
+      <el-button-group>
+        <el-button
+          type="primary"
+          @click="handleAdd('add')"
+          class="filter-item"
+          >登记诉求</el-button
+        >
+        <!-- <el-button
+          type="primary"
+          @click="handleDetail('add')"
+          class="filter-item"
+          >详情（待删）</el-button
+        > -->
+      </el-button-group>
     </div>
     <el-table
       :data="records"
@@ -61,21 +111,17 @@
       :cell-style="{ padding: '3px' }"
     >
       <el-table-column
-        label="流程实例名称"
+        label="企业名称"
         prop="processInstanceName"
         align="center"
       >
-        <template slot-scope="scope"
-          ><span>{{ scope.row.processInstanceName }}</span></template
-        >
       </el-table-column>
-      <el-table-column label="任务名称" prop="name" align="center">
-        <template slot-scope="scope"
-          ><span>{{ scope.row.name }}</span></template
-        >
+      <el-table-column label="诉求标题" prop="name" align="center">
+      </el-table-column>
+      <el-table-column label="受理交办人" prop="name" align="center">
       </el-table-column>
       <el-table-column
-        label="开始时间"
+        label="受理时间"
         prop="createTime"
         align="center"
         width="165px"
@@ -84,20 +130,15 @@
           ><span>{{ scope.row.createTime }}</span></template
         >
       </el-table-column>
-      <el-table-column label="到期日期" prop="dueDate" align="center">
-        <template slot-scope="scope"
-          ><span>{{ scope.row.dueDate }}</span></template
-        >
+      <el-table-column label="诉求来源" prop="name" align="center">
       </el-table-column>
-      <el-table-column label="所有人" prop="owner" align="center">
-        <template slot-scope="scope"
-          ><span>{{ scope.row.owner }}</span></template
-        >
+      <el-table-column label="办理单位" prop="name" align="center">
       </el-table-column>
-      <el-table-column label="执行人" prop="assignee" align="center">
-        <template slot-scope="scope"
-          ><span>{{ scope.row.assignee }}</span></template
-        >
+      <el-table-column label="办理责任人" prop="name" align="center">
+      </el-table-column>
+      <el-table-column label="紧急程度" prop="name" align="center">
+      </el-table-column>
+      <el-table-column label="联系方式" prop="name" align="center">
       </el-table-column>
       <el-table-column label="操作" align="center">
         <template slot-scope="{ row }">
@@ -108,36 +149,8 @@
             <el-dropdown-menu slot="dropdown">
               <el-dropdown-item
                 icon="el-icon-view"
-                @click.native="btnView(row.processInstanceId)"
-                >查看详情
-              </el-dropdown-item>
-              <el-dropdown-item
-                v-if="row.assignee == null || row.assignee == ''"
-                icon="el-icon-edit"
-                divided
-                @click.native="btnClaim(row)"
-                >认领
-              </el-dropdown-item>
-              <el-dropdown-item
-                v-if="
-                  row.assignee === $store.getters.sysUser.userId &&
-                  row.endTime == null
-                "
-                icon="el-icon-edit"
-                divided
-                @click.native="btnUnclaim(row)"
-                >取消认领
-              </el-dropdown-item>
-              <el-dropdown-item
-                v-if="
-                  row.endTime == null &&
-                  row.assignee != null &&
-                  row.assignee != ''
-                "
-                icon="el-icon-edit"
-                divided
-                @click.native="btnExcuteTask(row)"
-                >执行
+                @click.native="handleAdd('edit', row.processInstanceId)"
+                >受理
               </el-dropdown-item>
             </el-dropdown-menu>
           </el-dropdown>
@@ -151,6 +164,8 @@
       :size.sync="listQuery.size"
       @pagination="list"
     />
+    <appealDetail ref='appealDetail'></appealDetail>
+    <appealForm ref="appealForm"></appealForm>
   </div>
 </template>
 
@@ -159,9 +174,12 @@ import Pagination from "@/components/Pagination";
 import { getAction, putAction, postAction, deleteAction } from "@/api/manage";
 import { Message } from "element-ui";
 
+import appealDetail from './appealDetail'
+import appealForm from './appealForm'
+
 export default {
-  name: "FlowableTaskTodo",
-  components: { Pagination },
+  name: "appeal",
+  components: { Pagination, appealDetail, appealForm },
   data() {
     return {
       dicts: [],
@@ -193,6 +211,12 @@ export default {
     this.list();
   },
   methods: {
+    handleAdd(status, id = '') {
+      this.$refs.appealDetail.init(status, id)
+    },
+    handleDetail() {
+      this.$refs.appealForm.init()
+    },
     list() {
       getAction("/flowable/task/listTodo", this.listQuery).then((res) => {
         const { data } = res;
